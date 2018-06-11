@@ -1,58 +1,46 @@
 'use strict'
 process.env.NODE_ENV = 'production'
 
-const config = require('./config')
-const webpack = require('webpack')
 const path = require('path')
-const report = require('webpack-bundle-analyzer')
+const webpack = require('webpack')
+const merge = require('webpack-merge')
 const formatter = require('eslint-friendly-formatter')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
-const context = path.resolve(__dirname, '../')
+const config = require('./webpack.base.conf')
+const include = Object.values(config.entry)
+  .map(rel => path.resolve(config.context, rel))
 
-const include = Object.values(config.entries)
-  .map(rel => path.resolve(context, rel))
-
-const webpackPlugins = [
-  new webpack.DefinePlugin({ 'process.env': config.env }),
-  new webpack.optimize.ModuleConcatenationPlugin(),
-  new UglifyJsPlugin({
-    sourceMap: true,
-    parallel: true,
-    uglifyOptions: {
-      compress: { warnings: false }
-    }
-  })
-]
-
-if (process.env.npm_config_report) webpackPlugins.push(new report.BundleAnalyzerPlugin())
-
-module.exports = {
-  context,
-  entry: config.entries,
+module.exports = merge(config, {
   devtool: '#source-map',
-  plugins: webpackPlugins,
   output: {
-    path: path.resolve(context, config.output),
-    filename: '[name].js',
-    chunkFilename: '[name].[id].js',
-    library: [config.library, '[name]'],
-    libraryExport: 'default',
-    libraryTarget: 'umd'
+    path: path.resolve(config.context, 'dist'),
+    libraryTarget: 'umd',
+    libraryExport: 'default'
   },
+  plugins: [
+    new webpack.DefinePlugin({ 'process.env': '"production"' }),
+    new webpack.optimize.ModuleConcatenationPlugin(),
+    new UglifyJsPlugin({ sourceMap: true, parallel: true })
+  ],
   module: {
-    rules: [{
-      include,
-      test: /\.js$/,
-      enforce: 'pre',
-      use: [{
-        loader: 'eslint-loader',
-        options: { formatter, fix: true }
-      }]
-    }, {
-      include,
-      test: /\.js$/,
-      use: ['babel-loader']
-    }]
+    rules: [
+      {
+        include,
+        test: /\.js$/,
+        enforce: 'pre',
+        use: [
+          {
+            loader: 'eslint-loader',
+            options: { formatter, fix: true }
+          }
+        ]
+      },
+      {
+        include,
+        test: /\.js$/,
+        use: ['babel-loader']
+      }
+    ]
   },
   node: {
     setImmediate: false,
@@ -62,4 +50,4 @@ module.exports = {
     tls: 'empty',
     child_process: 'empty'
   }
-}
+})
