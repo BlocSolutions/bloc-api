@@ -6,9 +6,8 @@
   "license": "MIT",
   "repository": "git@github.com:blocsolutions/bloc-api.git",
   "homepage": "https://github.com/blocsolutions/bloc-api#readme",
-  "main": "dist/api.js",
+  "main": "dist/bloc.js",
   "files": [
-    "/src/",
     "/dist/"
   ],
   "scripts": {

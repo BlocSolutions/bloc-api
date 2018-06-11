@@ -1,11 +1,12 @@
-# Api Consumer
+# bloc-api
 
-Connect to the Bloc Solutions listings API
+Connect to the [Bloc.Solutions](https://bloc.solutions) listings API.
 
-## Install
+## Usage
 
-Install in project:
+### Install
 
 ```bash
 npm i bloc-api
 ```
+
