@@ -1,48 +1,41 @@
 import http from './http'
+import store from './store'
 import regions from './regions'
-import { ListingDetails, ListingIndex } from './resolvers'
+import Promise from 'promise-polyfill'
 
-function Listings() {
-  this.ready = false
-  this.config = { region: 'quebec' }
-  http('https://api.bloc.solutions/api/public/listings')
-    .then(index =>
-      index.forEach(listing =>
-        Object.assign(this.store, { [listing.uid]: listing })))
-    .then(() => {
-      this.ready = true
-    })
-    .catch(err => {
-      console.error(err)
-    })
-}
+export default {
+  // scope for the index query
+  region: 'quebec',
 
-Listings.prototype.index = function() {
+  // fetch an index object of all listings, returns a Promise
+  getIndex(region) {
+    region = region || this.region
+    if (!~regions.indexOf(region)) return Promise.reject(new Error(`"${region}" is not a recognized region`))
 
-}
-
-Object.defineProperties(Listings.prototype, {
-  pending: { value: Array() },
-  store: { value: Object() },
-  region: {
-    get() { return this.config.region },
-    set(region) {
-      let valid = !!~regions.indexOf(region)
-      if (!valid) console.warn(`"${region}" is not a recognized region`)
-      else this.config.region = region
-    }
-  }
-})
-
-export default (uid) {
-  listings(region = 'quebec') {
-
-    if (!~regions.indexOf(region)) return console.error(`"${region}" is not a recognized region`)
-    return fetch(`/listings/${region}`, )
+    store.clear()
+    return http(`https://api.bloc.solutions/api/public/listings/${region}`)
+      .then(list =>
+        list.reduce((index, listing) =>
+          Object.assign(index, { [listing.uid]: listing }), store))
   },
 
-  listing(uid) {
-    if (!uid) return console.error(`No listing UID provided`)
-    return fetch(`/listings/get/${uid}` (res) => res[0])
+  // fetch a detailed object of one or many listings by UID, returns a Promise
+  getListings(...uids) {
+    if (!uids.length) return Promise.reject(new Error('No listing UID provided'))
+
+    const listingData = () =>
+      Promise.all(uids.map(uid =>
+        http(`https://api.bloc.solutions/api/public/listings/get/${uid}`)
+          .then(data => (!data.length) ? { uid, error: 'Listing not found' } : data[0])))
+
+    const indexData = () =>
+      (!store.count)
+        ? this.getIndex()
+        : Promise.resolve(store)
+
+    return Promise.all([indexData(), listingData()])
+      .then(([index, listings]) =>
+        listings.map(listing =>
+          Object.assign(listing, index[listing.uid])))
   }
 }

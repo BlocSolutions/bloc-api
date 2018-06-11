@@ -8,7 +8,7 @@ const webpack = require('webpack')
 const config = require('./webpack.build.conf')
 const spinner = require('ora')('building for production...').start()
 
-rimraf(config.output.path, (error) => {
+rimraf(`${config.output.path}/*`, (error) => {
   if (error) throw error
 
   webpack(config, (err, stats) => {

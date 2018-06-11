@@ -1,44 +1,17 @@
-export default (uri, transform) => {
-    let res, err
-    const onLoad = []
-    const onError = []
+import Promise from 'promise-polyfill'
+
+export default (uri) =>
+  new Promise((resolve, reject) => {
     const req = new XMLHttpRequest()
 
-    const $promise = {
-      then: (cb) => {
-        if (res && !err) cb(res)
-        else onLoad.push(cb)
-        return $promise
-      },
-      catch: (cb) => {
-        if (!err) onError.push(cb)
-        else cb(err)
-        return $promise
-      }
-    }
+    req.addEventListener('load', () => {
+      let res = req.response
+      if (req.status < 200 || req.status >= 400) return reject(req.statusText)
+      try { res = JSON.parse(res) } catch (error) { return reject(error) }
+      resolve(res)
+    })
 
-    const errorHandler = function(error) {
-      err = error
-      onError.forEach(handler => cb(handler))
-    }
-
-    const loadHandler = function() {
-      try {
-        let response = JSON.parse(this.response)
-        if (transform) response = transform(response)
-        res = response
-      } catch (error) {
-        return errorHandler(error)
-      }
-
-      if (this.status < 200 || 400 <= this.status) return errorHandler(this.statusText)
-      onLoad.forEach(handler => handler(res))
-    }
-
+    req.addEventListener('error', reject)
     req.open('GET', uri, true)
-    req.addEventListener('load', loadHandler)
-    req.addEventListener('error', errorHandler)
     req.send()
-
-    return $promise
-  }
+  })
