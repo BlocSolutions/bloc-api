@@ -1,6 +1,6 @@
 {
   "name": "bloc-api",
-  "version": "0.1.3",
+  "version": "1.0.0",
   "description": "Bloc.Solutions listings API client",
   "author": "Nicolas Udy <dev@udy.io>",
   "license": "MIT",
