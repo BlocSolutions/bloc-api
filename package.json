@@ -11,7 +11,7 @@
     "/dist/"
   ],
   "scripts": {
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "lint": "eslint --ext .js src",
     "build": "node build/build.js",
     "dev": "webpack --config build/webpack.dev.conf.js"
