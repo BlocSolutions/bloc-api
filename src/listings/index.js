@@ -14,6 +14,11 @@ const listingsInterface = function(...uids) {
   const getIndex = function() {
     store.clear()
     return http(`https://api.bloc.solutions/api/public/listings/${config.region}`)
+      .then(list => list.map(item => {
+        item.price = Number(item.price)
+        item.vacancy = new Date(item.vacancy)
+        return item
+      }))
       .then(list => list.reduce(listToIndex, store))
   }
 
